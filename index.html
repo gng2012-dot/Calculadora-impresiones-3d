@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calculadora de costos 3D - Bambu Lab A1</title>
+<style>
+  :root{--bg:#f7f3ed;--card:#fff;--text:#2d2a26;--muted:#746e66;--accent:#8b6f47;--line:#e4ddd3;--ok:#315f42}
+  @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1a17;--card:#262320;--text:#f0ebe3;--muted:#a79f94;--accent:#b8935c;--line:#3a352f;--ok:#7fc79a}:root:not([data-theme="light"]) input{background:#1c1a17;color:var(--text)}:root:not([data-theme="light"]) button.secondary{background:#3a352f;color:var(--text)}:root:not([data-theme="light"]) .highlight{background:#312b22;border-color:#4a4032}}
+  :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+  html{scroll-padding-top:env(safe-area-inset-top,0px)}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+  .wrap{max-width:900px;margin:30px auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:16px}
+  h1{margin:0 0 8px;font-size:28px}
+  h2{font-size:18px;margin:0 0 16px}
+  .sub{color:var(--muted);margin-bottom:22px}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
+  input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:16px}
+  input:focus{outline:2px solid #c9b28f;border-color:var(--accent)}
+  .hint{font-size:12px;color:var(--muted);margin-top:5px}
+  button{border:0;border-radius:11px;padding:13px 18px;background:var(--accent);color:white;font-weight:700;font-size:16px;cursor:pointer}
+  button.secondary{background:#eee7dd;color:var(--text)}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+  .result{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .metric{border:1px solid var(--line);border-radius:14px;padding:16px}
+  .metric .label{font-size:13px;color:var(--muted);font-weight:600}
+  .metric .value{font-size:25px;font-weight:800;margin-top:5px}
+  .highlight{background:#f2eadf;border-color:#d9c7ae}
+  .highlight .value{color:var(--ok)}
+  .breakdown{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+  .row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line)}
+  .row:last-child{border-bottom:0}
+  .note{font-size:13px;color:var(--muted);line-height:1.5;margin-top:14px}
+  .error{color:#9a2f2f;font-size:13px;margin-top:10px;display:none}
+  @media(max-width:620px){.grid,.result{grid-template-columns:1fr}.wrap{margin:10px auto;padding:10px}.card{padding:18px}h1{font-size:23px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>🖨️ Calculadora de costos 3D</h1>
+    <div class="sub">Pensada para una Bambu Lab A1 y para calcular el precio de venta de tus piezas.</div>
+
+    <h2>Datos de la impresión</h2>
+    <div class="grid">
+      <div>
+        <label for="hours">Minutos de impresión</label>
+        <input id="hours" type="number" min="0" step="1" value="300">
+      </div>
+      <div>
+        <label for="grams">Filamento utilizado (g)</label>
+        <input id="grams" type="number" min="0" step="0.1" value="100">
+      </div>
+      <div>
+        <label for="filament">Precio del filamento ($/kg)</label>
+        <input id="filament" type="number" min="0" step="1" value="25000">
+      </div>
+      <div>
+        <label for="power">Consumo promedio de la impresora (W)</label>
+        <input id="power" type="number" min="0" step="1" value="100">
+        <div class="hint">Valor inicial estimado para la Bambu Lab A1. Podés cambiarlo.</div>
+      </div>
+      <div>
+        <label for="kwh">Costo efectivo de electricidad ($/kWh)</label>
+        <input id="kwh" type="number" min="0" step="0.01" value="304.90">
+        <div class="hint">Calculado de tu factura: $92.385,51 ÷ 303 kWh ≈ $304,90/kWh.</div>
+      </div>
+      <div>
+        <label for="machine">Costo de máquina/desgaste ($/hora)</label>
+        <input id="machine" type="number" min="0" step="1" value="100">
+        <div class="hint">Podés poner $0 si todavía no querés contemplarlo.</div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:24px">Ganancia</h2>
+    <div class="grid">
+      <div>
+        <label for="margin">Margen de ganancia (%)</label>
+        <input id="margin" type="number" min="0" step="1" value="50">
+        <div class="hint">Ej.: 50% significa sumar un 50% sobre el costo.</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" id="calc">Calcular</button>
+      <button type="button" class="secondary" id="reset">Restablecer</button>
+    </div>
+    <div id="error" class="error"></div>
+  </div>
+
+  <div class="card">
+    <h2>Resultado</h2>
+    <div class="result">
+      <div class="metric"><div class="label">Costo del filamento</div><div class="value" id="filCost">$0</div></div>
+      <div class="metric"><div class="label">Costo de electricidad</div><div class="value" id="elecCost">$0</div></div>
+      <div class="metric"><div class="label">Desgaste de máquina</div><div class="value" id="machineCost">$0</div></div>
+      <div class="metric highlight"><div class="label">Costo total de producción</div><div class="value" id="totalCost">$0</div></div>
+      <div class="metric highlight"><div class="label">Precio sugerido de venta</div><div class="value" id="salePrice">$0</div></div>
+      <div class="metric"><div class="label">Ganancia</div><div class="value" id="profit">$0</div></div>
+    </div>
+
+    <div class="breakdown">
+      <div class="row"><span>Consumo eléctrico</span><strong id="energy">0 kWh</strong></div>
+      <div class="row"><span>Costo por hora de electricidad</span><strong id="hourElec">$0</strong></div>
+      <div class="row"><span>Ganancia aplicada</span><strong id="marginValue">0%</strong></div>
+    </div>
+
+    <div class="note">
+      Esta calculadora usa el costo efectivo total de tu factura como referencia. 
+      Para fijar precios comerciales también conviene contemplar fallas, soportes, desperdicio,
+      boquillas, mantenimiento, embalaje, diseño y tiempo de preparación.
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const ids = ["hours","grams","filament","power","kwh","machine","margin"];
+  const $ = id => document.getElementById(id);
+  const money = n => "$" + Math.round(n).toLocaleString("es-AR");
+  const num = id => Number($(id).value);
+
+  function calculate(){
+    const hours=num("hours")/60, grams=num("grams"), filament=num("filament"),
+          power=num("power"), kwh=num("kwh"), machine=num("machine"), margin=num("margin");
+    const error=$("error");
+
+    if([hours,grams,filament,power,kwh,machine,margin].some(v=>!Number.isFinite(v)||v<0)){
+      error.textContent="Revisá los valores: todos deben ser números iguales o mayores a 0.";
+      error.style.display="block";
+      return;
+    }
+    error.style.display="none";
+
+    const filamentCost = grams * (filament/1000);
+    const energy = (power/1000) * hours;
+    const electricityCost = energy * kwh;
+    const machineCost = hours * machine;
+    const total = filamentCost + electricityCost + machineCost;
+    const profit = total * (margin/100);
+    const sale = total + profit;
+
+    $("filCost").textContent=money(filamentCost);
+    $("elecCost").textContent=money(electricityCost);
+    $("machineCost").textContent=money(machineCost);
+    $("totalCost").textContent=money(total);
+    $("salePrice").textContent=money(sale);
+    $("profit").textContent=money(profit);
+    $("energy").textContent=energy.toFixed(2)+" kWh";
+    $("hourElec").textContent=money(power/1000*kwh);
+    $("marginValue").textContent=margin.toLocaleString("es-AR")+"%";
+  }
+
+  ids.forEach(id => $(id).addEventListener("input", calculate));
+  $("calc").addEventListener("click", calculate);
+  $("reset").addEventListener("click", ()=>{
+    $("hours").value=300; $("grams").value=100; $("filament").value=25000;
+    $("power").value=100; $("kwh").value=304.90; $("machine").value=100; $("margin").value=50;
+    calculate();
+  });
+  calculate();
+})();
+</script>
+</body>
+</html>
