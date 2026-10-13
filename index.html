@@ -1,168 +1,48 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Calculadora de costos 3D - Bambu Lab A1</title>
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Calculadora de costos 3D</title>
 <style>
-  :root{--bg:#f7f3ed;--card:#fff;--text:#2d2a26;--muted:#746e66;--accent:#8b6f47;--line:#e4ddd3;--ok:#315f42}
-  @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1a17;--card:#262320;--text:#f0ebe3;--muted:#a79f94;--accent:#b8935c;--line:#3a352f;--ok:#7fc79a}:root:not([data-theme="light"]) input{background:#1c1a17;color:var(--text)}:root:not([data-theme="light"]) button.secondary{background:#3a352f;color:var(--text)}:root:not([data-theme="light"]) .highlight{background:#312b22;border-color:#4a4032}}
-  :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-  html{scroll-padding-top:env(safe-area-inset-top,0px)}
-  *{box-sizing:border-box}
-  body{margin:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
-  .wrap{max-width:900px;margin:30px auto;padding:16px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:16px}
-  h1{margin:0 0 8px;font-size:28px}
-  h2{font-size:18px;margin:0 0 16px}
-  .sub{color:var(--muted);margin-bottom:22px}
-  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-  label{display:block;font-weight:600;font-size:14px;margin-bottom:6px}
-  input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:16px}
-  input:focus{outline:2px solid #c9b28f;border-color:var(--accent)}
-  .hint{font-size:12px;color:var(--muted);margin-top:5px}
-  button{border:0;border-radius:11px;padding:13px 18px;background:var(--accent);color:white;font-weight:700;font-size:16px;cursor:pointer}
-  button.secondary{background:#eee7dd;color:var(--text)}
-  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-  .result{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-  .metric{border:1px solid var(--line);border-radius:14px;padding:16px}
-  .metric .label{font-size:13px;color:var(--muted);font-weight:600}
-  .metric .value{font-size:25px;font-weight:800;margin-top:5px}
-  .highlight{background:#f2eadf;border-color:#d9c7ae}
-  .highlight .value{color:var(--ok)}
-  .breakdown{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
-  .row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line)}
-  .row:last-child{border-bottom:0}
-  .note{font-size:13px;color:var(--muted);line-height:1.5;margin-top:14px}
-  .error{color:#9a2f2f;font-size:13px;margin-top:10px;display:none}
-  @media(max-width:620px){.grid,.result{grid-template-columns:1fr}.wrap{margin:10px auto;padding:10px}.card{padding:18px}h1{font-size:23px}}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <div class="card">
-    <h1>🖨️ Calculadora de costos 3D</h1>
-    <div class="sub">Pensada para una Bambu Lab A1 y para calcular el precio de venta de tus piezas.</div>
-
-    <h2>Datos de la impresión</h2>
-    <div class="grid">
-      <div>
-        <label for="hours">Minutos de impresión</label>
-        <input id="hours" type="number" min="0" step="1" value="300">
-      </div>
-      <div>
-        <label for="grams">Filamento utilizado (g)</label>
-        <input id="grams" type="number" min="0" step="0.1" value="100">
-      </div>
-      <div>
-        <label for="filament">Precio del filamento ($/kg)</label>
-        <input id="filament" type="number" min="0" step="1" value="25000">
-      </div>
-      <div>
-        <label for="power">Consumo promedio de la impresora (W)</label>
-        <input id="power" type="number" min="0" step="1" value="100">
-        <div class="hint">Valor inicial estimado para la Bambu Lab A1. Podés cambiarlo.</div>
-      </div>
-      <div>
-        <label for="kwh">Costo efectivo de electricidad ($/kWh)</label>
-        <input id="kwh" type="number" min="0" step="0.01" value="304.90">
-        <div class="hint">Calculado de tu factura: $92.385,51 ÷ 303 kWh ≈ $304,90/kWh.</div>
-      </div>
-      <div>
-        <label for="machine">Costo de máquina/desgaste ($/hora)</label>
-        <input id="machine" type="number" min="0" step="1" value="100">
-        <div class="hint">Podés poner $0 si todavía no querés contemplarlo.</div>
-      </div>
-    </div>
-
-    <h2 style="margin-top:24px">Ganancia</h2>
-    <div class="grid">
-      <div>
-        <label for="margin">Margen de ganancia (%)</label>
-        <input id="margin" type="number" min="0" step="1" value="50">
-        <div class="hint">Ej.: 50% significa sumar un 50% sobre el costo.</div>
-      </div>
-    </div>
-
-    <div class="actions">
-      <button type="button" id="calc">Calcular</button>
-      <button type="button" class="secondary" id="reset">Restablecer</button>
-    </div>
-    <div id="error" class="error"></div>
-  </div>
-
-  <div class="card">
-    <h2>Resultado</h2>
-    <div class="result">
-      <div class="metric"><div class="label">Costo del filamento</div><div class="value" id="filCost">$0</div></div>
-      <div class="metric"><div class="label">Costo de electricidad</div><div class="value" id="elecCost">$0</div></div>
-      <div class="metric"><div class="label">Desgaste de máquina</div><div class="value" id="machineCost">$0</div></div>
-      <div class="metric highlight"><div class="label">Costo total de producción</div><div class="value" id="totalCost">$0</div></div>
-      <div class="metric highlight"><div class="label">Precio sugerido de venta</div><div class="value" id="salePrice">$0</div></div>
-      <div class="metric"><div class="label">Ganancia</div><div class="value" id="profit">$0</div></div>
-    </div>
-
-    <div class="breakdown">
-      <div class="row"><span>Consumo eléctrico</span><strong id="energy">0 kWh</strong></div>
-      <div class="row"><span>Costo por hora de electricidad</span><strong id="hourElec">$0</strong></div>
-      <div class="row"><span>Ganancia aplicada</span><strong id="marginValue">0%</strong></div>
-    </div>
-
-    <div class="note">
-      Esta calculadora usa el costo efectivo total de tu factura como referencia. 
-      Para fijar precios comerciales también conviene contemplar fallas, soportes, desperdicio,
-      boquillas, mantenimiento, embalaje, diseño y tiempo de preparación.
-    </div>
-  </div>
-</div>
-
+:root{--bg:#f7f3ed;--card:#fff;--text:#302c28;--muted:#756d64;--line:#e4dbd0;--accent:#8a6b49;--soft:#f0e7dc;--green:#356347}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}.wrap{max-width:920px;margin:20px auto;padding:14px}h1{font-size:26px;margin:0 0 8px}h2{font-size:18px;margin:0 0 15px}.sub,.hint,.note{color:var(--muted);line-height:1.45}.sub{margin-bottom:16px}.hint{font-size:12px;margin-top:5px}.note{font-size:12px;margin-top:15px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:15px}.grid,.results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field{min-width:0}label{display:block;font-size:14px;font-weight:700;margin-bottom:6px}input{width:100%;min-width:0;padding:12px;border:1px solid #d9cec1;border-radius:10px;font-size:16px}input:focus{outline:2px solid #cbb392}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}button{min-height:44px;padding:12px 17px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;font-size:15px}button.secondary{background:var(--soft);color:var(--text)}.metric{padding:14px;border:1px solid var(--line);border-radius:12px;min-width:0}.metric.primary{background:var(--soft);border-color:#d7c2a9}.name{font-size:13px;color:var(--muted);font-weight:700}.value{font-size:23px;font-weight:800;overflow-wrap:anywhere;margin-top:5px}.primary .value{color:var(--green)}.rows{border-top:1px solid var(--line);margin-top:16px;padding-top:8px}.row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px}.row span{color:var(--muted)}.row strong{text-align:right}.error{display:none;color:#9a2929;margin-top:12px;font-size:13px}@media(max-width:600px){.wrap{padding:10px;margin:8px auto}.card{padding:15px}.grid,.results{grid-template-columns:1fr}h1{font-size:23px}}
+</style></head><body><main class="wrap" id="calc3d">
+<h1>🖨️ Calculadora de costos 3D</h1><p class="sub">Calculá el costo de fabricar tus piezas y el precio de venta, incluyendo desperdicio, insumos, embalaje, envío, mano de obra y electricidad.</p>
+<section class="card"><h2>1. Impresión y material</h2><div class="grid">
+<div class="field"><label for="piece">Peso de la pieza (g)</label><input id="piece" type="number" min="0" value="50"></div>
+<div class="field"><label for="support">Peso de soportes (g)</label><input id="support" type="number" min="0" value="5"></div>
+<div class="field"><label for="purge">Peso de purga (g)</label><input id="purge" type="number" min="0" value="0"><div class="hint">Incluí purga por cambios de color, si corresponde.</div></div>
+<div class="field"><label for="filament">Precio del filamento ($/kg)</label><input id="filament" type="number" min="0" value="25000"></div>
+<div class="field"><label for="waste">Desperdicio / fallas (%)</label><input id="waste" type="number" min="0" max="300" value="10"><div class="hint">Por defecto, 10%.</div></div>
+<div class="field"><label for="hours">Tiempo de impresión (horas)</label><input id="hours" type="number" min="0" step=".1" value="3"></div>
+</div></section>
+<section class="card"><h2>2. Insumos, embalaje y envío</h2><div class="grid">
+<div class="field"><label for="supplies">Insumos aparte ($)</label><input id="supplies" type="number" min="0" value="0"><div class="hint">Imanes, tornillos, pintura, pegamento, etc.</div></div>
+<div class="field"><label for="pack">Embalaje ($)</label><input id="pack" type="number" min="0" value="0"></div>
+<div class="field"><label for="shipCharged">Envío cobrado al cliente ($)</label><input id="shipCharged" type="number" min="0" value="0"><div class="hint">Se suma al total que paga el cliente.</div></div>
+<div class="field"><label for="shipCost">Costo del envío que pagás ($)</label><input id="shipCost" type="number" min="0" value="0"></div>
+</div></section>
+<section class="card"><h2>3. Mano de obra y electricidad</h2><div class="grid">
+<div class="field"><label for="minutes">Minutos de mano de obra</label><input id="minutes" type="number" min="0" value="10"><div class="hint">Preparación, limpieza y terminación.</div></div>
+<div class="field"><label for="laborRate">Valor de tu hora de trabajo ($/h)</label><input id="laborRate" type="number" min="0" value="3000"></div>
+<div class="field"><label for="power">Consumo promedio de la impresora (W)</label><input id="power" type="number" min="0" value="100"><div class="hint">Estimación editable para Bambu Lab A1.</div></div>
+<div class="field"><label for="kwh">Costo efectivo de luz ($/kWh)</label><input id="kwh" type="number" min="0" step=".01" value="304.90"><div class="hint">Referencia de tu factura: $92.385,51 ÷ 303 kWh ≈ $304,90/kWh.</div></div>
+<div class="field"><label for="machine">Desgaste de máquina ($/h)</label><input id="machine" type="number" min="0" value="100"></div>
+<div class="field"><label for="margin">Margen de ganancia sobre costo (%)</label><input id="margin" type="number" min="0" max="1000" value="50"><div class="hint">50% = sumar la mitad del costo como ganancia.</div></div>
+</div><div class="actions"><button id="calc" type="button">Calcular</button><button id="reset" type="button" class="secondary">Restablecer valores</button></div><div id="error" class="error" role="alert"></div></section>
+<section class="card" aria-live="polite"><h2>4. Resultado</h2><div class="results">
+<div class="metric"><div class="name">Filamento + desperdicio</div><div class="value" id="rFil">$0</div></div>
+<div class="metric"><div class="name">Electricidad</div><div class="value" id="rElec">$0</div></div>
+<div class="metric"><div class="name">Mano de obra</div><div class="value" id="rLabor">$0</div></div>
+<div class="metric"><div class="name">Desgaste de máquina</div><div class="value" id="rMachine">$0</div></div>
+<div class="metric"><div class="name">Insumos + embalaje</div><div class="value" id="rExtras">$0</div></div>
+<div class="metric"><div class="name">Envío que pagás</div><div class="value" id="rShip">$0</div></div>
+<div class="metric primary"><div class="name">Costo total</div><div class="value" id="rTotal">$0</div></div>
+<div class="metric primary"><div class="name">Precio sugerido de la pieza</div><div class="value" id="rSale">$0</div></div>
+<div class="metric"><div class="name">Ganancia estimada</div><div class="value" id="rProfit">$0</div></div>
+<div class="metric"><div class="name">Total que paga el cliente (con envío)</div><div class="value" id="rCustomer">$0</div></div>
+</div><div class="rows"><div class="row"><span>Filamento total calculado</span><strong id="rGrams">0 g</strong></div><div class="row"><span>Consumo eléctrico estimado</span><strong id="rEnergy">0 kWh</strong></div><div class="row"><span>Electricidad por hora</span><strong id="rHour">$0</strong></div></div>
+<p class="note">El cálculo suma pieza + soportes + purga y aplica el porcentaje de desperdicio/fallas. El precio sugerido suma el margen sobre el costo. No incluye comisiones de plataformas ni impuestos sobre la venta. Todos los valores son editables.</p></section></main>
 <script>
-(function(){
-  const ids = ["hours","grams","filament","power","kwh","machine","margin"];
-  const $ = id => document.getElementById(id);
-  const money = n => "$" + Math.round(n).toLocaleString("es-AR");
-  const num = id => Number($(id).value);
-
-  function calculate(){
-    const hours=num("hours")/60, grams=num("grams"), filament=num("filament"),
-          power=num("power"), kwh=num("kwh"), machine=num("machine"), margin=num("margin");
-    const error=$("error");
-
-    if([hours,grams,filament,power,kwh,machine,margin].some(v=>!Number.isFinite(v)||v<0)){
-      error.textContent="Revisá los valores: todos deben ser números iguales o mayores a 0.";
-      error.style.display="block";
-      return;
-    }
-    error.style.display="none";
-
-    const filamentCost = grams * (filament/1000);
-    const energy = (power/1000) * hours;
-    const electricityCost = energy * kwh;
-    const machineCost = hours * machine;
-    const total = filamentCost + electricityCost + machineCost;
-    const profit = total * (margin/100);
-    const sale = total + profit;
-
-    $("filCost").textContent=money(filamentCost);
-    $("elecCost").textContent=money(electricityCost);
-    $("machineCost").textContent=money(machineCost);
-    $("totalCost").textContent=money(total);
-    $("salePrice").textContent=money(sale);
-    $("profit").textContent=money(profit);
-    $("energy").textContent=energy.toFixed(2)+" kWh";
-    $("hourElec").textContent=money(power/1000*kwh);
-    $("marginValue").textContent=margin.toLocaleString("es-AR")+"%";
-  }
-
-  ids.forEach(id => $(id).addEventListener("input", calculate));
-  $("calc").addEventListener("click", calculate);
-  $("reset").addEventListener("click", ()=>{
-    $("hours").value=300; $("grams").value=100; $("filament").value=25000;
-    $("power").value=100; $("kwh").value=304.90; $("machine").value=100; $("margin").value=50;
-    calculate();
-  });
-  calculate();
-})();
-</script>
-</body>
-</html>
+(function(){const root=document.getElementById('calc3d'),ids=['piece','support','purge','filament','waste','hours','supplies','pack','shipCharged','shipCost','minutes','laborRate','power','kwh','machine','margin'];const $=id=>root.querySelector('#'+id),n=id=>Number($(id).value),money=x=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(x);
+function calc(){const v={};ids.forEach(i=>v[i]=n(i));const e=$('error');if(ids.some(i=>!Number.isFinite(v[i])||v[i]<0)||v.waste>300||v.margin>1000){e.textContent='Revisá los valores: deben ser positivos. Desperdicio máximo 300% y margen máximo 1000%.';e.style.display='block';return}e.style.display='none';
+const grams=(v.piece+v.support+v.purge)*(1+v.waste/100),fil=grams*v.filament/1000,energy=v.power/1000*v.hours,elec=energy*v.kwh,labor=v.minutes/60*v.laborRate,machine=v.hours*v.machine,extras=v.supplies+v.pack,total=fil+elec+labor+machine+extras+v.shipCost,profit=total*v.margin/100,sale=total+profit;
+const out={rFil:fil,rElec:elec,rLabor:labor,rMachine:machine,rExtras:extras,rShip:v.shipCost,rTotal:total,rSale:sale,rProfit:profit,rCustomer:sale+v.shipCharged};Object.keys(out).forEach(i=>$(i).textContent=money(out[i]));$('rGrams').textContent=grams.toLocaleString('es-AR',{maximumFractionDigits:1})+' g';$('rEnergy').textContent=energy.toLocaleString('es-AR',{maximumFractionDigits:3})+' kWh';$('rHour').textContent=money(v.power/1000*v.kwh)}
+ids.forEach(i=>$(i).addEventListener('input',calc));$('calc').addEventListener('click',calc);$('reset').addEventListener('click',()=>{const d={piece:50,support:5,purge:0,filament:25000,waste:10,hours:3,supplies:0,pack:0,shipCharged:0,shipCost:0,minutes:10,laborRate:3000,power:100,kwh:304.90,machine:100,margin:50};Object.keys(d).forEach(i=>$(i).value=d[i]);calc()});calc()})();
+</script></body></html>
